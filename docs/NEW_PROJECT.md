@@ -15,7 +15,8 @@ Android `namespace`/`applicationId`/`MainActivity` (вместе с катало
 iOS bundle id и отображаемые имена, схему и домен deep links. Затем сам
 прогонит `flutter pub get`, `flutter gen-l10n` и `build_runner`.
 
-Проверка: `flutter analyze` и `flutter test` должны быть зелёными.
+Проверка: `make check` должен быть зелёным (нужен `bloc` CLI:
+`dart pub global activate bloc_tools`).
 
 ## 2. CLAUDE.md
 
@@ -39,8 +40,8 @@ Code будет сопротивляться ровно той работе, р�
 - Весь раздел Architecture: слои и направление зависимостей, DI через scopes,
   роутинг Auto Route, BLoC и базовые классы, data-слой и обработка ошибок,
   Drift и типизированные SharedPreferences, API-клиент
-- Commands и планка приёмки: `flutter analyze` + `flutter test` + реальная
-  сборка при изменении платформенного конфига или ассетов
+- Commands и планка приёмки: `make check` + реальная сборка при изменении
+  платформенного конфига или ассетов
 - Ловушка `build.yaml` (файл вне glob'ов молча не генерируется) и список
   генерируемых файлов
 - Разделы Conventions и Linting
@@ -106,5 +107,8 @@ Code будет сопротивляться ровно той работе, р�
 - `android/key.properties` и keystore: `make setup-android`
 - Deep links: файлы `apple-app-site-association` и `assetlinks.json` в шаблоне
   не поставляются, их нужно выложить на домен проекта
-- Версия Flutter зафиксирована в `.fvmrc`, версия в `make shorebird-*` должна
-  ей соответствовать
+- Версия Flutter зафиксирована только в `.fvmrc` — `make shorebird-*` и CI
+  читают её оттуда
+- CI (`.github/workflows/ci.yml`) рассчитан на GitHub Actions; для другого
+  CI перенести те же шаги. Секреты в CI не нужны: сборка идёт с
+  `config/development.json`

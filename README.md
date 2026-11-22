@@ -131,11 +131,17 @@ return Text(l10n.homeLabel);
 Новая локаль: добавить `app_<locale>.arb` рядом с шаблоном и внести локаль
 в `CFBundleLocalizations` в `ios/Runner/Info.plist`.
 
-## Тесты
+## Проверки и тесты
 
 ```sh
-flutter test
+make check           # format-check + analyze + bloc lint + flutter test — то же, что в CI
+make format          # отформатировать все Dart-файлы проекта
 ```
+
+`make bloc-lint` нужен CLI из `bloc_tools`:
+`dart pub global activate bloc_tools` (и `~/.pub-cache/bin` в `PATH`).
+CI — `.github/workflows/ci.yml`: те же проверки на чистой кодогенерации
+плюс debug-сборка Android.
 
 `test/helpers/pump_app.dart` — хелпер рендеринга виджета с локализациями.
 

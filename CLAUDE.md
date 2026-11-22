@@ -17,8 +17,9 @@ Two consequences for any change made here:
 
 ## Commands
 
-Flutter is pinned via FVM (`.fvmrc`, currently 3.44.1) — prefix commands with `fvm` when the global
-Flutter doesn't match. Most tasks have Makefile targets.
+Flutter is pinned via FVM — `.fvmrc` is the single source of the version (the Makefile's shorebird
+targets and CI read it from there; don't duplicate the number elsewhere). Prefix commands with `fvm`
+when the global Flutter doesn't match. Most tasks have Makefile targets.
 
 ```bash
 # Start a new project from this template (package name, bundle id, app name, deep links)
@@ -36,10 +37,11 @@ make watch-runner
 # Localization only
 flutter gen-l10n
 
-# Checks (run all three before declaring work done)
-flutter analyze                # must be "No issues found!"
-flutter test
-dart fix --apply
+# Checks — `make check` must be green before declaring work done (CI runs the same)
+make check                     # = format-check + analyze + bloc-lint + test
+make format                    # format all Dart files (git-tracked + new, generated excluded)
+make analyze                   # dart run tool/analyze.dart — must end with "No issues found!"
+make bloc-lint                 # bloc lint . (needs: dart pub global activate bloc_tools)
 
 # Build
 make build-android             # appbundle, production
@@ -47,9 +49,17 @@ make build-ios                 # ipa, production
 make shorebird-android         # / make shorebird-ios
 ```
 
-Verification bar for any change: `flutter analyze` clean, `flutter test` green, and for changes
-touching platform config or assets — an actual build
+Verification bar for any change: `make check` green, and for changes touching platform config or
+assets — an actual build
 (`flutter build apk --debug --flavor development --dart-define-from-file=config/development.json`).
+
+**Known analyzer noise:** Flutter 3.47+ deprecated `package:flutter/material.dart` / `cupertino.dart`
+in favour of the `material_ui` / `cupertino_ui` packages. Those `deprecated_member_use` infos (~64) are
+filtered out by `tool/analyze.dart` — and only those; any other issue, info included, fails the check.
+The migration is a separate task: `material_ui` is a copy of the classes, not a re-export, so it can't
+be done piecemeal while third-party packages still use `package:flutter` types. Don't "fix" these
+imports one by one, and don't run a bare `dart fix --apply` (it would rewrite them) — use
+`dart fix --apply --code=<lint>` for specific lints.
 
 ## Architecture
 
@@ -157,8 +167,9 @@ add the route to `MainShell._tabs` and an item to `AppBottomNavBar.items` (keep 
 the bar renders only when there is more than one tab) → `make runner`.
 
 `app_router.gr.dart` is generated. Never hand-edit it, and always rerun `build_runner` after touching
-`@RoutePage()` or `@AutoRoute` — a stale `.gr.dart` is invisible to `flutter analyze` because
-generated files are excluded from analysis, and it breaks the build instead.
+`@RoutePage()` or `@AutoRoute` — a stale `.gr.dart` is invisible to `analyze` because generated files
+are excluded from analysis, and it breaks the build instead. CI regenerates everything from scratch,
+so there a stale file can't hide anything.
 
 ### State management (BLoC)
 
@@ -171,7 +182,9 @@ generated files are excluded from analysis, and it breaks the build instead.
   convenience getters (`isProcessing`, `error`, …). Keep carried data on every state so the UI
   doesn't flicker on transitions.
 - Concurrency is explicit: `bloc_concurrency` transformers (`sequential`, `droppable`, `restartable`).
-- Subscriptions are cancelled in `close()` (`cancel_subscriptions` and `close_sinks` are lint errors).
+- Subscriptions are cancelled in `close()` (`cancel_subscriptions` and `close_sinks` are lint errors —
+  but only for subscriptions/controllers stored in a variable or field; a discarded `.listen(...)`
+  result is not caught, so don't discard it).
 - `SetStateBlocMixin` exists for pushing states from an external stream.
 
 ### Data layer & error handling
@@ -260,7 +273,8 @@ A new locale needs `app_<locale>.arb` plus an entry in `CFBundleLocalizations` i
 `build.yaml` restricts builders to globs — **a file outside them is silently skipped by codegen**,
 which is the most common "why isn't my `.freezed.dart` generated" trap:
 
-- `freezed` → `feature/**/model/**`, `core/model/models/**`, `feature/**/bloc/**`, `feature/**/cubit/**`
+- `freezed` → `feature/**/model/**`, `core/model/models/**`, `core/bloc/**`, `feature/**/bloc/**`,
+  `feature/**/cubit/**`
 - `json_serializable` → `feature/**/model/**`, `core/model/models/**`
 - `drift_dev` → `feature/**/database/**`, `core/database/drift/**`
 
@@ -300,10 +314,29 @@ in sync: a change to the template-only framing here belongs in that checklist to
 
 ### Linting
 
-`very_good_analysis` with a strict override list in `analysis_options.yaml`. Escalated to **errors**:
-`avoid_dynamic_calls`, `cancel_subscriptions`, `close_sinks`, `always_declare_return_types`,
-`avoid_returning_null_for_future`, `avoid_setters_without_getters`. Generated files are excluded from
-analysis — which is exactly why stale generated code must be caught by building, not by `analyze`.
+Everything claimed here is enforced by `make check` and CI — keep it that way: don't document a rule
+that no tool checks.
+
+- **Analyzer:** `very_good_analysis` (`include:` in `analysis_options.yaml`) plus a short list of
+  differences. Additionally enabled: `avoid_implementing_value_types`, `close_sinks` (off in VGA),
+  `no_runtimeType_toString`, `use_decorated_box`. Disabled: `public_member_api_docs`,
+  `one_member_abstracts` (every repository/DAO has an `I*` interface even with one method).
+- **Escalated to errors:** `always_declare_return_types`, `avoid_dynamic_calls`,
+  `avoid_setters_without_getters`, `avoid_void_async`, `cancel_subscriptions`, `close_sinks`,
+  `constant_identifier_names`, `discarded_futures`, `unawaited_futures`.
+- **Infos are fatal too:** `tool/analyze.dart` fails on any issue except the `material_ui` migration
+  deprecations (see "Known analyzer noise" above).
+- **bloc_lint** (`bloc:` section): `avoid_flutter_imports`, `avoid_public_bloc_methods`,
+  `avoid_public_fields`, `prefer_file_naming_conventions`, `prefer_void_public_cubit_methods`. Read
+  only by the `bloc lint` CLI and the bloc IDE extensions, not by `flutter analyze`. The CLI comes from
+  `bloc_tools`, installed globally — as a dev dependency `bloc_lint` conflicts with freezed /
+  json_serializable over the `analyzer` version.
+- **Formatting:** `dart format` with `trailing_commas: preserve`; `make format-check` fails on
+  unformatted files.
+
+Generated files are excluded from analysis — which is exactly why stale generated code must be caught
+by building (CI does it from a clean checkout), not by `analyze`.
 
 Prefer fixing the code over adding `// ignore:`. When an ignore is unavoidable, keep it on the
-narrowest scope and add a one-line reason in Russian.
+narrowest scope and put a one-line reason in Russian on the line above (`document_ignores` enforces
+it).
