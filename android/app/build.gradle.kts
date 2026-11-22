@@ -23,10 +23,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_21.toString()
-    }
-
     defaultConfig {
         applicationId = "com.example.flutterstarter"
         minSdk = flutter.minSdkVersion
@@ -68,6 +64,12 @@ android {
             dimension = "default"
             manifestPlaceholders["appName"] = "Flutter Starter"
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
     }
 }
 

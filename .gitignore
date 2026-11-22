@@ -57,6 +57,7 @@ ios/Podfile.lock
 .cxx
 
 # Android Studio will place build artifacts here
+/android/build/
 /android/app/debug
 /android/app/profile
 /android/app/release

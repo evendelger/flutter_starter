@@ -1,5 +1,8 @@
 # ==== CONFIGURATION ====
 
+# Версия Flutter — единственный источник .fvmrc
+FLUTTER_VERSION := $(shell sed -n 's/.*"flutter": *"\([^"]*\)".*/\1/p' .fvmrc)
+
 # Настройки для генерации Keystore
 KEY_STORE_PASS ?= _
 KEY_ALIAS_PASS ?= _
@@ -52,11 +55,11 @@ build-ios:
 
 .PHONY: shorebird-ios
 shorebird-ios:
-	shorebird release ios --flutter-version 3.44.1 --flavor production -- --dart-define-from-file=config/production.json
+	shorebird release ios --flutter-version $(FLUTTER_VERSION) --flavor production -- --dart-define-from-file=config/production.json
 
 .PHONY: shorebird-android
 shorebird-android:
-	shorebird release android --flutter-version 3.44.1 --flavor production -- --dart-define-from-file=config/production.json
+	shorebird release android --flutter-version $(FLUTTER_VERSION) --flavor production -- --dart-define-from-file=config/production.json
 
 # ==== ANDROID SETUP ====
 
@@ -108,7 +111,7 @@ splash:
 
 .PHONY: splash-remove
 splash-remove:
-	flutter pub run flutter_native_splash:remove
+	dart run flutter_native_splash:remove
 
 .PHONY: fix
 fix:
