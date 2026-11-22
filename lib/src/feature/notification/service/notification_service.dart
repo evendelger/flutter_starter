@@ -60,16 +60,15 @@ class NotificationService {
     }
     await flutterLocalNotificationsPlugin?.initialize(
       settings: initializationSettings,
-      onDidReceiveNotificationResponse:
-          (NotificationResponse notificationResponse) {
-            final payload = notificationResponse.payload;
-            if (payload != null) {
-              final data = Map<String, Object?>.from(
-                jsonDecode(payload) as Map,
-              );
-              selectNotificationStream.add(data);
-            }
-          },
+      onDidReceiveNotificationResponse: (notificationResponse) {
+        final payload = notificationResponse.payload;
+        if (payload != null) {
+          final data = Map<String, Object?>.from(
+            jsonDecode(payload) as Map,
+          );
+          selectNotificationStream.add(data);
+        }
+      },
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
   }

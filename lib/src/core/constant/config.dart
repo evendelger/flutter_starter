@@ -72,8 +72,7 @@ enum EnvironmentFlavor {
   development('development'),
 
   /// Production
-  production('production')
-  ;
+  production('production');
 
   /// Create environment flavor.
   const EnvironmentFlavor(this.value);

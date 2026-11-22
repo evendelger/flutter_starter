@@ -1,4 +1,3 @@
-import 'package:client_api/client_api.dart';
 import 'package:flutter_starter/src/core/utils/device_app_info_service.dart';
 import 'package:flutter_starter/src/core/utils/logger.dart';
 import 'package:flutter_starter/src/feature/settings/database/settings_dao.dart';
@@ -20,7 +19,6 @@ abstract interface class ISettingsRepository {
 final class SettingsRepository implements ISettingsRepository {
   SettingsRepository({
     required this._settingsDao,
-    required ClientApi client,
   });
 
   final ISettingsDao _settingsDao;

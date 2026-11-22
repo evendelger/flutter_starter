@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+/// Аксессор значения из scope. `listen: null` — поведение по умолчанию,
+/// заданное в scope (`listenByDefault`).
 typedef ScopeData<D extends Object?> =
     D Function(
       BuildContext context, {
-      bool listen,
+      bool? listen,
     });
 
 typedef NullaryScopeMethod = void Function(BuildContext context);

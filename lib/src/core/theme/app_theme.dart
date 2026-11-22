@@ -266,7 +266,8 @@ abstract final class AppTheme {
     onSurface: AppPalette.dark,
     // Второстепенный текст (gray) на фоне surface
     onSurfaceVariant: AppPalette.gray,
-    // Фон для карточек и текстовых полей (lightBlue). В M3 это роль для заливки контейнеров.
+    // Фон для карточек и текстовых полей (lightBlue).
+    // В M3 это роль для заливки контейнеров.
     surfaceContainerHighest: AppPalette.lightBlue,
 
     // ==========================================

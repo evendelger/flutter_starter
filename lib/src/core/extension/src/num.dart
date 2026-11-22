@@ -11,7 +11,7 @@ extension NumX on num {
   /// Переводит в доллары
   String get dollars => NumberFormat.currency(
     locale: 'ru',
-    symbol: '\$',
+    symbol: r'$',
     decimalDigits: 0,
   ).format(this);
 

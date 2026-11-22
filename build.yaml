@@ -6,6 +6,7 @@ targets:
         generate_for:
           - lib/src/feature/**/model/**
           - lib/src/core/model/models/**
+          - lib/src/core/bloc/**
           - lib/src/feature/**/bloc/**
           - lib/src/feature/**/cubit/**
 

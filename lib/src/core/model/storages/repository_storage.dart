@@ -1,5 +1,4 @@
 import 'package:client_api/client_api.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter_starter/src/core/database/drift/app_database.dart';
 import 'package:flutter_starter/src/feature/auth/data/repositories/auth_repository.dart';
 import 'package:flutter_starter/src/feature/auth/data/repositories/token_storage.dart';
@@ -22,7 +21,6 @@ final class RepositoryStorage implements IRepositoryStorage {
     required this._sharedPreferences,
     required this._client,
     required this._tokenStorage,
-    required Dio dio,
   });
 
   final AppDatabase _appDatabase;
@@ -36,7 +34,6 @@ final class RepositoryStorage implements IRepositoryStorage {
   @override
   late final ISettingsRepository settings = SettingsRepository(
     settingsDao: SettingsDao(sharedPreferences: _sharedPreferences),
-    client: _client,
   );
 
   @override
@@ -53,7 +50,5 @@ final class RepositoryStorage implements IRepositoryStorage {
   );
 
   @override
-  late final INotificationsRepository notifications = NotificationsRepository(
-    client: _client,
-  );
+  late final INotificationsRepository notifications = NotificationsRepository();
 }

@@ -37,7 +37,7 @@ mixin UrlLauncher {
         ? '+7${phone.substring(1)}'
         : phone;
     try {
-      return _launchUrl(
+      await _launchUrl(
         Uri.parse('https://api.whatsapp.com/send?phone=$prettyPhone'),
       );
     } on Object catch (_) {

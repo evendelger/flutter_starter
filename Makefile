@@ -33,6 +33,43 @@ rename:
 run:
 	flutter run --flavor development --dart-define-from-file=config/development.json
 
+# ==== CHECKS ====
+# `make check` — то, что должно быть зелёным перед коммитом (и что гоняет CI).
+
+# Все Dart-файлы под git, включая новые неотслеживаемые; сгенерированные исключены .gitignore
+DART_FILES = git ls-files --cached --others --exclude-standard -- '*.dart'
+
+.PHONY: format
+format:
+	$(DART_FILES) | xargs dart format
+
+.PHONY: format-check
+format-check:
+	$(DART_FILES) | xargs dart format --output=none --set-exit-if-changed
+
+.PHONY: analyze
+analyze:
+	dart run tool/analyze.dart
+
+# CLI из bloc_tools ставится глобально: dart pub global activate bloc_tools
+.PHONY: bloc-lint
+bloc-lint:
+	@command -v bloc >/dev/null 2>&1 || { \
+		echo "Не найден bloc CLI: dart pub global activate bloc_tools и добавить ~/.pub-cache/bin в PATH"; \
+		exit 1; \
+	}
+	bloc lint .
+
+.PHONY: lint
+lint: format-check analyze bloc-lint
+
+.PHONY: test
+test:
+	flutter test
+
+.PHONY: check
+check: lint test
+
 # ==== PRODUCTION ====
 
 .PHONY: run-release

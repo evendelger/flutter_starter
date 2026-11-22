@@ -45,7 +45,7 @@ abstract class ModalSheetUtils {
       ),
     );
 
-    return await Navigator.push<T>(context, modalRoute);
+    return Navigator.push<T>(context, modalRoute);
   }
 }
 

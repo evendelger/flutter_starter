@@ -1,3 +1,4 @@
+// CLI-скрипт: вывод в stdout — это его интерфейс.
 // ignore_for_file: avoid_print
 
 /// Переименование шаблона под новый проект.
@@ -25,8 +26,7 @@ void main(List<String> args) {
     exit(64);
   }
 
-  final root = Directory.current;
-  final current = _CurrentValues.read(root);
+  final current = _CurrentValues.read();
 
   print('Переименование:');
   print('  пакет:     ${current.packageName} -> ${options.name}');
@@ -40,7 +40,7 @@ void main(List<String> args) {
   _replaceInFile(File('pubspec.yaml'), {
     RegExp('^name: ${current.packageName}\$', multiLine: true):
         'name: ${options.name}',
-    RegExp('^description: .*\$', multiLine: true):
+    RegExp(r'^description: .*$', multiLine: true):
         'description: "${options.appName}"',
   });
   _replaceInDir(
@@ -149,8 +149,9 @@ _Options? _parseArgs(List<String> args) {
     print('Имя пакета должно быть в snake_case: $name');
     return null;
   }
-  if (!RegExp(r'^[a-zA-Z][a-zA-Z0-9]*(\.[a-zA-Z][a-zA-Z0-9]*)+$')
-      .hasMatch(bundleId)) {
+  if (!RegExp(
+    r'^[a-zA-Z][a-zA-Z0-9]*(\.[a-zA-Z][a-zA-Z0-9]*)+$',
+  ).hasMatch(bundleId)) {
     print('Некорректный bundle id: $bundleId');
     return null;
   }
@@ -174,12 +175,13 @@ class _CurrentValues {
     required this.domain,
   });
 
-  factory _CurrentValues.read(Directory root) {
+  factory _CurrentValues.read() {
     final pubspec = File('pubspec.yaml').readAsStringSync();
     final packageName =
-        RegExp(r'^name:\s*(\S+)', multiLine: true)
-            .firstMatch(pubspec)
-            ?.group(1) ??
+        RegExp(
+          r'^name:\s*(\S+)',
+          multiLine: true,
+        ).firstMatch(pubspec)?.group(1) ??
         (throw StateError('Не удалось прочитать name из pubspec.yaml'));
 
     final gradle = File('android/app/build.gradle.kts').readAsStringSync();
@@ -196,12 +198,12 @@ class _CurrentValues {
       'android/app/src/main/AndroidManifest.xml',
     ).readAsStringSync();
     final scheme =
-        RegExp(r'android:scheme="(?!http)([^"]+)"')
-            .firstMatch(manifest)
-            ?.group(1) ??
+        RegExp(
+          'android:scheme="(?!http)([^"]+)"',
+        ).firstMatch(manifest)?.group(1) ??
         'app';
     final domain =
-        RegExp(r'android:host="([^"]+)"').firstMatch(manifest)?.group(1) ??
+        RegExp('android:host="([^"]+)"').firstMatch(manifest)?.group(1) ??
         'example.com';
 
     return _CurrentValues(

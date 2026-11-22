@@ -1,5 +1,3 @@
-import 'package:client_api/client_api.dart';
-
 abstract interface class INotificationsRepository {
   Future<void> registerPushToken({String? token});
 
@@ -7,9 +5,7 @@ abstract interface class INotificationsRepository {
 }
 
 final class NotificationsRepository implements INotificationsRepository {
-  NotificationsRepository({
-    required ClientApi client,
-  });
+  NotificationsRepository();
 
   @override
   Future<void> registerPushToken({String? token}) async {

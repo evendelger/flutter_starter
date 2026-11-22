@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_starter/src/core/model/model.dart';
 
 extension DioX on DioException {
-  static const _networkErrorTypes = {
+  static const Set<DioExceptionType> _networkErrorTypes = {
     DioExceptionType.connectionError,
     DioExceptionType.connectionTimeout,
     DioExceptionType.receiveTimeout,

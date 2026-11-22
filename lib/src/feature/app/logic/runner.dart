@@ -72,7 +72,6 @@ mixin MainRunner {
           sharedPreferences: sharedPreferences,
           client: dependencies.client,
           tokenStorage: dependencies.tokenStorage,
-          dio: dependencies.dio,
         );
 
         final initialUser = await dependencies.database.userDao.getUser();

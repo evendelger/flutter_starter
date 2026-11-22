@@ -28,7 +28,7 @@ class CubitScope<S extends Object?, C extends Cubit<S>> {
   ScopeData<D> data<D extends Object?>(
     D Function(BuildContext context, S state) data,
   ) =>
-      (BuildContext context, {bool? listen}) => (listen ?? _listenByDefault)
+      (context, {listen}) => (listen ?? _listenByDefault)
       ? context.select<C, D>((cubit) => data(context, cubit.state))
       : data(context, _cubit(context).state);
 
@@ -36,11 +36,10 @@ class CubitScope<S extends Object?, C extends Cubit<S>> {
       data((_, state) => selector(state));
 
   NullaryScopeMethod nullary(CubitNullaryWithContext<C, S> method) =>
-      (BuildContext context) => method(context, _cubit(context));
+      (context) => method(context, _cubit(context));
 
   UnaryScopeMethod<A> unary<A extends Object?>(
     CubitUnaryWithContext<C, S, A> method,
   ) =>
-      (BuildContext context, A argument) =>
-          method(context, _cubit(context), argument);
+      (context, argument) => method(context, _cubit(context), argument);
 }

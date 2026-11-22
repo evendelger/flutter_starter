@@ -46,6 +46,7 @@ abstract class Scope extends StatefulWidget {
   ScopeDelegate<Scope> createDelegate();
 
   @override
+  // Логика создания State намеренно вынесена в createDelegate.
   // ignore: no_logic_in_create_state
   State<StatefulWidget> createState() => createDelegate();
 }

@@ -41,7 +41,7 @@ class AppBottomNavBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: NavigationBar(
         selectedIndex: tabsRouter.activeIndex,
-        onDestinationSelected: (index) => tabsRouter.setActiveIndex(index),
+        onDestinationSelected: tabsRouter.setActiveIndex,
         indicatorColor: Colors.transparent,
         labelTextStyle: WidgetStateProperty.resolveWith((state) {
           const height = 17 / 14;

@@ -1,5 +1,3 @@
-// ignore_for_file: strict_raw_type
-
 import 'dart:developer';
 
 import 'package:auto_route/auto_route.dart';
@@ -9,7 +7,7 @@ class AppRouterObserver extends AutoRouterObserver {
   static const _logName = 'Router';
 
   @override
-  void didPush(Route route, Route? previousRoute) {
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
     _log(
       action: 'PUSH   ',
       from: _routeName(previousRoute),
@@ -18,7 +16,7 @@ class AppRouterObserver extends AutoRouterObserver {
   }
 
   @override
-  void didPop(Route route, Route? previousRoute) {
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
     _log(
       action: 'POP    ',
       from: _routeName(route),
@@ -27,7 +25,7 @@ class AppRouterObserver extends AutoRouterObserver {
   }
 
   @override
-  void didReplace({Route? newRoute, Route? oldRoute}) {
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
     _log(
       action: 'REPLACE',
       from: _routeName(oldRoute),
@@ -45,7 +43,7 @@ class AppRouterObserver extends AutoRouterObserver {
     log('TAB       /${previousRoute.path} → /${route.path}', name: _logName);
   }
 
-  String? _routeName(Route? route) {
+  String? _routeName(Route<dynamic>? route) {
     final settings = route?.settings;
     if (settings is AutoRoutePage) {
       final path = settings.routeData.match;

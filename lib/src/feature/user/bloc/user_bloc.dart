@@ -30,7 +30,6 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       (event, emit) => switch (event) {
         _GetUserData() => _getUserData(event, emit),
         _UpdateUserState() => _onUpdateUserState(event, emit),
-        // _UpdateUser() => _onUpdateUser(event, emit),
       },
       transformer: bloc_concurrency.sequential(),
     );
@@ -68,30 +67,6 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       emit(UserState.idle(user: user));
     }
   }
-
-  // Future<void> _onUpdateUser(_UpdateUser event, Emitter<UserState> emit) async {
-  //   try {
-  //     final user = state.user;
-  //     if (user == null) return;
-
-  //     emit(UserState.processing(user: state.user));
-
-  //     final request = event.request;
-
-  //     await _userRepository.updateUser(request: request);
-
-  //     emit(
-  //       UserState.successful(
-  //         user: state.user,
-  //         message: 'Данные пользователя обновлены!',
-  //       ),
-  //     );
-  //   } on UserException catch (error) {
-  //     emit(UserState.error(exception: error, user: state.user));
-  //   } finally {
-  //     emit(UserState.idle(user: state.user));
-  //   }
-  // }
 
   void _onUpdateUserState(_UpdateUserState event, Emitter<UserState> emit) {
     emit(event.state);

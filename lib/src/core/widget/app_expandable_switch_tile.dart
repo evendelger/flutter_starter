@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart';
@@ -35,7 +34,7 @@ class _AppExpandableSwitchTileState extends State<AppExpandableSwitchTile>
   late final AnimationController _controller;
   late final Animation<double> _animation;
 
-  static const _animDuration = AppAnimations.switchTileTransition;
+  static const Duration _animDuration = AppAnimations.switchTileTransition;
 
   @override
   void initState() {
@@ -62,9 +61,9 @@ class _AppExpandableSwitchTileState extends State<AppExpandableSwitchTile>
       _isExpanded = !_isExpanded;
 
       if (_isExpanded) {
-        unawaited(_controller.forward());
+        _controller.forward();
       } else {
-        unawaited(_controller.reverse());
+        _controller.reverse();
       }
     });
   }
