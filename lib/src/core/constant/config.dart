@@ -19,7 +19,7 @@ abstract base class Config {
   static const siteUrl = String.fromEnvironment('SITE_URL');
 
   /// Store url.
-  static String storeUrl = Platform.isIOS
+  static final storeUrl = Platform.isIOS
       ? const String.fromEnvironment('APP_STORE_URL')
       : const String.fromEnvironment('PLAY_STORE_URL');
 

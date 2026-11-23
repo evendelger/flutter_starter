@@ -42,6 +42,9 @@ class NotificationReciever extends StatefulWidget {
 
 class _NotificationRecieverState extends State<NotificationReciever>
     with WidgetsBindingObserver {
+  /// Подписки на потоки уведомлений; отменяются в [dispose]
+  final List<StreamSubscription<Object?>> _subscriptions = [];
+
   @override
   void initState() {
     super.initState();
@@ -70,15 +73,15 @@ class _NotificationRecieverState extends State<NotificationReciever>
   }
 
   void _configureSelectNotificationSubject() {
-    NotificationService.selectNotificationStream.stream.listen((data) {});
+    _subscriptions.addAll([
+      NotificationService.selectNotificationStream.stream.listen((data) {}),
+      FirebaseMessaging.onMessage.listen(_showNotification),
+      FirebaseMessaging.onMessageOpenedApp.listen(_selectNotification),
+    ]);
 
     unawaited(
       FirebaseMessaging.instance.getInitialMessage().then(_selectNotification),
     );
-
-    FirebaseMessaging.onMessage.listen(_showNotification);
-
-    FirebaseMessaging.onMessageOpenedApp.listen(_selectNotification);
   }
 
   void _showNotification(RemoteMessage message) {
@@ -98,6 +101,9 @@ class _NotificationRecieverState extends State<NotificationReciever>
 
   @override
   void dispose() {
+    for (final subscription in _subscriptions) {
+      unawaited(subscription.cancel());
+    }
     NotificationService.close();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();

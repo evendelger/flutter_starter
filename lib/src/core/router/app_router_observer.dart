@@ -1,10 +1,9 @@
-import 'dart:developer';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_starter/src/core/utils/logger.dart';
 
 class AppRouterObserver extends AutoRouterObserver {
-  static const _logName = 'Router';
+  static const _logName = '[Router]';
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
@@ -35,12 +34,14 @@ class AppRouterObserver extends AutoRouterObserver {
 
   @override
   void didInitTabRoute(TabPageRoute route, TabPageRoute? previousRoute) {
-    log('TAB INIT  /${route.path}', name: _logName);
+    mainTalker.debug('$_logName TAB INIT  /${route.path}');
   }
 
   @override
   void didChangeTabRoute(TabPageRoute route, TabPageRoute previousRoute) {
-    log('TAB       /${previousRoute.path} → /${route.path}', name: _logName);
+    mainTalker.debug(
+      '$_logName TAB       /${previousRoute.path} → /${route.path}',
+    );
   }
 
   String? _routeName(Route<dynamic>? route) {
@@ -57,6 +58,6 @@ class AppRouterObserver extends AutoRouterObserver {
   void _log({required String action, String? from, String? to}) {
     final fromPart = from != null ? '$from  →  ' : '';
     final toPart = to ?? '—';
-    log('$action  $fromPart$toPart', name: _logName);
+    mainTalker.debug('$_logName $action  $fromPart$toPart');
   }
 }
