@@ -345,48 +345,6 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Неверный код или ошибка проверки'**
   String get errorAuthVerifyCode;
-
-  /// No description provided for @updateDialogMandatoryTitle.
-  ///
-  /// In ru, this message translates to:
-  /// **'Требуется обновление!'**
-  String get updateDialogMandatoryTitle;
-
-  /// No description provided for @updateDialogMandatorySubtitle.
-  ///
-  /// In ru, this message translates to:
-  /// **'Чтобы продолжить пользоваться приложением, необходимо установить новую версию. Обновление содержит важные улучшения безопасности и новые функции.'**
-  String get updateDialogMandatorySubtitle;
-
-  /// No description provided for @updateDialogMandatoryButton.
-  ///
-  /// In ru, this message translates to:
-  /// **'Обновить сейчас'**
-  String get updateDialogMandatoryButton;
-
-  /// No description provided for @updateDialogSimpleTitle.
-  ///
-  /// In ru, this message translates to:
-  /// **'Доступно новое обновление'**
-  String get updateDialogSimpleTitle;
-
-  /// No description provided for @updateDialogSimpleSubtitle.
-  ///
-  /// In ru, this message translates to:
-  /// **'Мы добавили удобные функции и улучшили стабильность работы. Обновите приложение, чтобы всё работало ещё быстрее и удобнее!'**
-  String get updateDialogSimpleSubtitle;
-
-  /// No description provided for @updateDialogSimpleButtonPrimary.
-  ///
-  /// In ru, this message translates to:
-  /// **'Обновить'**
-  String get updateDialogSimpleButtonPrimary;
-
-  /// No description provided for @updateDialogSimpleButtonSecondary.
-  ///
-  /// In ru, this message translates to:
-  /// **'Напомнить позже'**
-  String get updateDialogSimpleButtonSecondary;
 }
 
 class _AppLocalizationsDelegate

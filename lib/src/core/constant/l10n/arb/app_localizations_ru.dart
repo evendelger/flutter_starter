@@ -137,27 +137,4 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get errorAuthVerifyCode => 'Неверный код или ошибка проверки';
-
-  @override
-  String get updateDialogMandatoryTitle => 'Требуется обновление!';
-
-  @override
-  String get updateDialogMandatorySubtitle =>
-      'Чтобы продолжить пользоваться приложением, необходимо установить новую версию. Обновление содержит важные улучшения безопасности и новые функции.';
-
-  @override
-  String get updateDialogMandatoryButton => 'Обновить сейчас';
-
-  @override
-  String get updateDialogSimpleTitle => 'Доступно новое обновление';
-
-  @override
-  String get updateDialogSimpleSubtitle =>
-      'Мы добавили удобные функции и улучшили стабильность работы. Обновите приложение, чтобы всё работало ещё быстрее и удобнее!';
-
-  @override
-  String get updateDialogSimpleButtonPrimary => 'Обновить';
-
-  @override
-  String get updateDialogSimpleButtonSecondary => 'Напомнить позже';
 }

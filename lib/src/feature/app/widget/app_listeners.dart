@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_starter/src/feature/auth/bloc/auth_bloc.dart';
-import 'package:flutter_starter/src/feature/settings/bloc/settings_bloc.dart';
-import 'package:flutter_starter/src/feature/settings/scope/settings_scope.dart';
 
 /// {@template app_listeners}
 /// Провайдер для слушателей
@@ -16,18 +14,6 @@ class AppListeners extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MultiBlocListener(
     listeners: [
-      BlocListener<SettingsBloc, SettingsState>(
-        listener: (context, state) async {
-          if (state is SettingsStateRequiredToUpdate) {
-            final forceUpdate = state.data.config?.app?.forceUpdate ?? false;
-            return SettingsScope.openUpdateDialog(
-              context,
-              forceUpdate: forceUpdate,
-            );
-          }
-        },
-      ),
-
       // Реакция на выход из аккаунта.
       // Авторизация необязательна, поэтому по умолчанию на главном экране
       // просто остаётся «гость». Если вход обязателен — раскомментируйте

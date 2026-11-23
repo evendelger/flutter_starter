@@ -274,6 +274,10 @@ default: a project font is declared in `pubspec.yaml` and then referenced as
 `fontFamily: FontFamily.<name>` in `_buildTheme()`. Colors go into `AppPalette`, never as inline
 `Color(0x...)` in widgets; sizes/paddings/radii into `UIConfig`.
 
+`AppConfiguration` takes `themeMode` from `SettingsScope.themeModeOf`. `AppTheme.darkTheme` is a
+placeholder generated from the brand color (`TODO(template)`), so the default theme is light until a
+project has a real dark palette — then switch the default in `SettingsRepository` to `system`.
+
 `assets/images/` and `assets/splash/` ship empty (`.gitkeep` — required, an empty declared asset dir
 breaks the build); `assets/icons/` holds a generic SVG set. Assets are referenced through generated
 Flutter Gen constants (`Assets.icons.home.svg()`), never by string path.

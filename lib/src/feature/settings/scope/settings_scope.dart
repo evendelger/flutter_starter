@@ -5,19 +5,20 @@ import 'package:flutter_starter/src/core/widget/widget.dart';
 import 'package:flutter_starter/src/feature/settings/bloc/settings_bloc.dart';
 import 'package:flutter_starter/src/feature/settings/enum/theme_type.dart';
 import 'package:flutter_starter/src/feature/settings/model/app_device_info.dart';
-import 'package:flutter_starter/src/feature/settings/model/settings_data.dart';
-import 'package:pub_semver/pub_semver.dart';
 
-AppThemeType _theme(SettingsState state) => state.data.themeType;
+ThemeMode _themeMode(SettingsState state) => switch (state.data.themeType) {
+  AppThemeType.light => ThemeMode.light,
+  AppThemeType.dark => ThemeMode.dark,
+  AppThemeType.system => ThemeMode.system,
+};
 
-// ThemeMode _themeToThemeMode(AppThemeType theme) => switch (theme) {
-//   AppThemeType.light => ThemeMode.light,
-//   AppThemeType.dark => ThemeMode.dark,
-//   AppThemeType.system => ThemeMode.system,
-// };
-
+/// {@template settings_scope}
+/// Настройки приложения: тема и информация о приложении и устройстве
+/// {@endtemplate}
 class SettingsScope extends StatelessWidget {
+  /// {@macro settings_scope}
   const SettingsScope({required this.child, super.key});
+
   final Widget child;
 
   static const BlocScope<SettingsEvent, SettingsState, SettingsBloc> _scope =
@@ -25,31 +26,16 @@ class SettingsScope extends StatelessWidget {
 
   // --- Data --- //
 
-  static ScopeData<Version?> get appVersionOf => _scope.select(
-    (state) => state.data.appVersion,
-  );
-
   static ScopeData<AppDeviceInfo?> get appInfoOf => _scope.select(
     (state) => state.data.appInfo,
   );
 
-  static ScopeData<AppConfig?> get appConfigOf => _scope.select(
-    (state) => state.data.config,
+  static ScopeData<AppThemeType> get appThemeOf => _scope.select(
+    (state) => state.data.themeType,
   );
 
-  static ScopeData<AppThemeType> get appThemeOf => _scope.select(_theme);
-
-  static ScopeData<int> get entryCountOf => _scope.select(
-    (state) => state.data.entryCount,
-  );
-
-  static ScopeData<bool> get openedIsFirstTimeOf => _scope.select(
-    (state) => state.data.entryCount == 0,
-  );
-
-  static ScopeData<bool> get isOnboardingPassedOf => _scope.select(
-    (state) => state.data.isOnboardingPassed,
-  );
+  /// [ThemeMode] для `MaterialApp.themeMode`
+  static ScopeData<ThemeMode> get themeModeOf => _scope.select(_themeMode);
 
   // --- Methods --- //
 
@@ -57,42 +43,10 @@ class SettingsScope extends StatelessWidget {
     (context, theme) => SettingsEvent.setTheme(themeType: theme),
   );
 
-  static UnaryScopeMethod<bool> get setOnboardingPassed => _scope.unary(
-    (context, isPassed) =>
-        SettingsEvent.setOnboardingPassed(isPassed: isPassed),
-  );
-
-  static Future<void> openUpdateDialog(
-    BuildContext context, {
-    bool forceUpdate = false,
-  }) async {
-    // final localized = context.l10n;
-    // final title = forceUpdate
-    //     ? localized.updateDialogMandatoryTitle
-    //     : localized.updateDialogSimpleTitle;
-    // final subTitle = forceUpdate
-    //     ? localized.updateDialogMandatorySubtitle
-    //     : localized.updateDialogSimpleSubtitle;
-    // final buttonTitle = forceUpdate
-    //     ? localized.updateDialogMandatoryButton
-    //     : localized.updateDialogSimpleButtonPrimary;
-
-    return;
-
-    // return AppRouter.rootNavigatorKey.currentContext?.showModalDialog<void>(
-    //   title: title,
-    //   isDismissible: !forceUpdate,
-    //   subTitle: subTitle,
-    //   acceptLabel: buttonTitle,
-    //   onAccept: () => UrlLauncher.openUrl(Config.storeUrl),
-    // );
-  }
-
   @override
   Widget build(BuildContext context) => BlocProvider<SettingsBloc>(
     create: (context) =>
         SettingsBloc(settingsRepository: context.repository.settings)
-          ..add(const SettingsEvent.incrementEntryCount())
           ..add(const SettingsEvent.getData()),
     child: child,
   );

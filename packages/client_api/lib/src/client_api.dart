@@ -15,12 +15,6 @@ abstract class ClientApi {
     String? baseUrl,
   }) = _ClientApi;
 
-  /// Получить конфигурацию приложения
-  @GET('/config')
-  Future<ApiResponse<AppConfigDto>> getConfig({
-    @Query('device_id') String? deviceId,
-  });
-
   /// Войти в аккаунт
   @POST('/login')
   Future<ApiResponse<LoginResponse>> login({
@@ -32,10 +26,6 @@ abstract class ClientApi {
   Future<ApiResponse<RegisterResponse>> register({
     @Body() required RegisterRequest request,
   });
-
-  // /// Выйти из аккаунта
-  // @POST('/auth/logout')
-  // Future<ApiResponse<void>> logout();
 
   /// Получить данные пользователя
   @GET('/users/current')

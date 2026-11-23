@@ -7,7 +7,19 @@ import 'package:flutter_starter/src/core/theme/app_typography.dart';
 
 /// Темы приложения
 abstract final class AppTheme {
-  static ThemeData get lightTheme => _buildTheme();
+  /// Светлая тема
+  static final ThemeData lightTheme = _buildTheme(_createColorScheme());
+
+  // TODO(template): заглушка — схема сгенерирована из основного цвета бренда.
+  // Заменить на тёмную палитру из дизайна (тёмные цвета — в `AppPalette`)
+  // и проверить виджеты, которые берут цвета из `AppPalette` напрямую.
+  /// Тёмная тема
+  static final ThemeData darkTheme = _buildTheme(
+    ColorScheme.fromSeed(
+      seedColor: AppPalette.darkBlue,
+      brightness: Brightness.dark,
+    ),
+  );
 
   static const verticalRoundedRectangleBorder38 = RoundedRectangleBorder(
     borderRadius: BorderRadius.vertical(top: Radius.circular(38)),
@@ -29,10 +41,7 @@ abstract final class AppTheme {
     borderRadius: BorderRadius.vertical(top: Radius.circular(2)),
   );
 
-  /// Светлая тема
-  static ThemeData _buildTheme() {
-    final colorScheme = _createColorScheme();
-
+  static ThemeData _buildTheme(ColorScheme colorScheme) {
     final textTheme = _createTextTheme().apply(
       // Шрифт проекта: добавьте его в `pubspec.yaml` и укажите здесь
       // `fontFamily: FontFamily.<name>`. По умолчанию — системный.

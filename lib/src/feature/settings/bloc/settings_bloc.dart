@@ -13,8 +13,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     : _settingsRepository = settingsRepository,
       super(SettingsState.idle(data: settingsRepository.defaultData)) {
     on<_SettingsEventSetTheme>(_setTheme);
-    on<_SettingsEventIncrementEntryCount>(_incrementEntryCount);
-    on<_SettingsEventSetOnboardingPassed>(_onSetOnboardingPassed);
     on<_SettingsEventGetData>(_getData);
   }
 
@@ -29,25 +27,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     emit(state.copyWith(data: data));
   }
 
-  Future<void> _incrementEntryCount(
-    _SettingsEventIncrementEntryCount event,
-    Emitter<SettingsState> emit,
-  ) async {
-    final newValue = state.data.entryCount + 1;
-    await _settingsRepository.setEntry(newValue);
-    final data = state.data.copyWith(entryCount: newValue);
-    emit(state.copyWith(data: data));
-  }
-
-  Future<void> _onSetOnboardingPassed(
-    _SettingsEventSetOnboardingPassed event,
-    Emitter<SettingsState> emit,
-  ) async {
-    final data = state.data.copyWith(isOnboardingPassed: event.isPassed);
-    await _settingsRepository.setOnboardingPassed(isPassed: event.isPassed);
-    emit(state.copyWith(data: data));
-  }
-
   Future<void> _getData(
     _SettingsEventGetData event,
     Emitter<SettingsState> emit,
@@ -56,10 +35,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
     final data = await _settingsRepository.getData();
 
-    if (data.isUpdateAvailable) {
-      emit(SettingsState.appNeedToUpdate(data: data));
-    }
-
-    return emit(SettingsState.idle(data: data));
+    emit(SettingsState.idle(data: data));
   }
 }

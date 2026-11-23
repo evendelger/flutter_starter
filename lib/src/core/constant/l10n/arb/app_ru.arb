@@ -53,13 +53,5 @@
   "errorUserGet": "Не удалось получить информацию о пользователе",
   "errorAuthSignOut": "Не удалось выйти из аккаунта",
   "errorAuthSendCode": "Не удалось отправить код",
-  "errorAuthVerifyCode": "Неверный код или ошибка проверки",
-
-  "updateDialogMandatoryTitle": "Требуется обновление!",
-  "updateDialogMandatorySubtitle": "Чтобы продолжить пользоваться приложением, необходимо установить новую версию. Обновление содержит важные улучшения безопасности и новые функции.",
-  "updateDialogMandatoryButton": "Обновить сейчас",
-  "updateDialogSimpleTitle": "Доступно новое обновление",
-  "updateDialogSimpleSubtitle": "Мы добавили удобные функции и улучшили стабильность работы. Обновите приложение, чтобы всё работало ещё быстрее и удобнее!",
-  "updateDialogSimpleButtonPrimary": "Обновить",
-  "updateDialogSimpleButtonSecondary": "Напомнить позже"
+  "errorAuthVerifyCode": "Неверный код или ошибка проверки"
 }

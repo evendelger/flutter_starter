@@ -1,5 +1,3 @@
-import 'package:flutter/widgets.dart';
-
 /// Информация о приложении и устройстве
 class AppDeviceInfo {
   AppDeviceInfo({
@@ -41,32 +39,5 @@ class AppDeviceInfo {
       'appVersion': appVersion,
       'buildNumber': buildNumber,
     };
-  }
-
-  Map<String, dynamic> toJsonRussian() {
-    return {
-      'Платформа': platform,
-      'Модель устройства': deviceModel,
-      'Версия операционной системы': osVersion,
-      'Производитель': manufacturer,
-      'Идентификатор устройства': deviceId,
-      'Версия приложения': appVersion,
-      'Номер сборки': buildNumber,
-    }..removeWhere((key, value) => value == null);
-  }
-
-  void printDebugInfo() {
-    debugPrint('''
-    Platform: $platform
-    Model: $deviceModel
-    OS Version: $osVersion
-    Manufacturer: $manufacturer
-    Physical Device: $isPhysicalDevice
-    Device ID: $deviceId
-    App Name: $appName
-    Package: $packageName
-    Version: $appVersion
-    Build: $buildNumber
-    ''');
   }
 }

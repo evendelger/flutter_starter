@@ -5,6 +5,7 @@ import 'package:flutter_starter/src/core/constant/constant.dart';
 import 'package:flutter_starter/src/core/extension/extension.dart';
 import 'package:flutter_starter/src/core/router/router.dart';
 import 'package:flutter_starter/src/core/theme/theme.dart';
+import 'package:flutter_starter/src/feature/settings/scope/settings_scope.dart';
 
 class AppConfiguration extends StatelessWidget {
   const AppConfiguration({super.key});
@@ -14,7 +15,8 @@ class AppConfiguration extends StatelessWidget {
     return AppRouterBuilder(
       builder: (context, config) => MaterialApp.router(
         theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: SettingsScope.themeModeOf(context, listen: true),
         onGenerateTitle: (context) => context.l10n.appName,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
