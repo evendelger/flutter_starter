@@ -12,9 +12,5 @@ abstract class User with _$User {
     String? avatar,
   }) = _User;
 
-  const User._();
-
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
-
-  bool get isRegistered => true;
 }

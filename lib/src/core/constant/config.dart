@@ -37,9 +37,6 @@ abstract base class Config {
 
   /// Текущая платформа в строковом формате: `ios` `android`
   static final platform = Platform.isIOS ? 'ios' : 'android';
-
-  /// Дефолтные значение для длительности анимации
-  static const animationDuration = Duration(milliseconds: 250);
 }
 
 /// Конфигурация UI
@@ -52,9 +49,6 @@ abstract final class UIConfig extends Config {
 
   /// Отступ боковых панелей от краев экрана
   static const double kSidePadding = 20;
-
-  /// Высота картинки сбора
-  static const double kCardImageHeight = 420;
 
   /// Размер растянутой кнопки
   static const kMaxButtonSize = Size.fromHeight(52);

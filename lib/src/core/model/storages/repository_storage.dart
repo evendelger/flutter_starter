@@ -50,5 +50,6 @@ final class RepositoryStorage implements IRepositoryStorage {
   );
 
   @override
-  late final INotificationsRepository notifications = NotificationsRepository();
+  late final INotificationsRepository notifications =
+      const NotificationsRepository();
 }

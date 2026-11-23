@@ -58,9 +58,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     final user = state.user;
 
     try {
-      // emit(UserState.processing(user: state.user));
       await _userRepository.getUserData();
-      // emit(UserState.successful(user: user));
     } on UserException catch (error) {
       emit(UserState.error(exception: error, user: user));
     } finally {
