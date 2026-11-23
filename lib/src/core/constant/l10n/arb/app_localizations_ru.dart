@@ -115,6 +115,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get errorSomethingWrong => 'Что-то пошло не так.\nПопробуйте позже.';
 
   @override
+  String get errorAppStart => 'Не удалось запустить приложение';
+
+  @override
   String get errorGetData => 'Произошла ошибка при получении данных';
 
   @override

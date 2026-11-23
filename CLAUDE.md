@@ -81,7 +81,8 @@ imports one by one, and don't run a bare `dart fix --apply` (it would rewrite th
 4. `DependenciesStorage.create()` — Dio, `AppDatabase`, `TokenStorage`, `FlutterSecureStorage`, `ClientApi`
 5. `RepositoryStorage` — auth, user, settings, notifications repositories
 6. Initial user loaded from the local DB, then `runApp(AppRoot(...))`
-7. Any failure in that block → `runApp(AppError(error: error))`
+7. Any failure in that block → logged, partially created dependencies closed, `runApp(AppError(onRetry: ...))`;
+   retry reruns the sequence without restarting the app
 
 New global initialization goes inside this sequence — not into widget `initState`.
 

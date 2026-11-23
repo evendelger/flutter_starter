@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_starter/src/core/model/model.dart';
 import 'package:flutter_starter/src/core/widget/widget.dart';
@@ -28,7 +30,7 @@ class _DependenciesScopeDelegate extends ScopeDelegate<DependenciesScope> {
 
   @override
   void dispose() {
-    storage.close();
+    unawaited(storage.close());
     super.dispose();
   }
 }

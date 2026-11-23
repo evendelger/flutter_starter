@@ -298,6 +298,12 @@ abstract class AppLocalizations {
   /// **'Что-то пошло не так.\nПопробуйте позже.'**
   String get errorSomethingWrong;
 
+  /// No description provided for @errorAppStart.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось запустить приложение'**
+  String get errorAppStart;
+
   /// No description provided for @errorGetData.
   ///
   /// In ru, this message translates to:

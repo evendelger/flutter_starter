@@ -60,36 +60,55 @@ mixin MainRunner {
         ),
       );
 
-      try {
-        final sharedPreferences = await SharedPreferences.getInstance();
-
-        final dependencies = await DependenciesStorage.create(
-          sharedPreferences: sharedPreferences,
-        );
-
-        final repositories = RepositoryStorage(
-          appDatabase: dependencies.database,
-          sharedPreferences: sharedPreferences,
-          client: dependencies.client,
-          tokenStorage: dependencies.tokenStorage,
-        );
-
-        final initialUser = await dependencies.database.userDao.getUser();
-
-        FlutterNativeSplash.remove();
-
-        return runApp(
-          AppRoot(
-            dependencies: dependencies,
-            repositories: repositories,
-            initialUser: initialUser,
-          ),
-        );
-      } on Object catch (error, stackTrace) {
-        mainTalker.handle(error, stackTrace);
-        FlutterNativeSplash.remove();
-        return runApp(AppError(error: error));
-      }
+      await _bootstrap();
     },
   );
+
+  /// Создание зависимостей и запуск [AppRoot].
+  ///
+  /// При ошибке показывается [AppError], повтор вызывает этот метод заново —
+  /// без перезапуска приложения. Частично созданные зависимости закрываются,
+  /// чтобы при повторе не открыть вторую копию базы данных.
+  static Future<void> _bootstrap() async {
+    DependenciesStorage? dependencies;
+
+    try {
+      final sharedPreferences = await SharedPreferences.getInstance();
+
+      dependencies = await DependenciesStorage.create(
+        sharedPreferences: sharedPreferences,
+      );
+
+      final repositories = RepositoryStorage(
+        appDatabase: dependencies.database,
+        sharedPreferences: sharedPreferences,
+        client: dependencies.client,
+        tokenStorage: dependencies.tokenStorage,
+      );
+
+      final initialUser = await dependencies.database.userDao.getUser();
+
+      runApp(
+        AppRoot(
+          dependencies: dependencies,
+          repositories: repositories,
+          initialUser: initialUser,
+        ),
+      );
+    } on Object catch (error, stackTrace) {
+      mainTalker.handle(error, stackTrace, 'Не удалось запустить приложение');
+      await _closeSafely(dependencies);
+      runApp(AppError(onRetry: () => unawaited(_bootstrap())));
+    } finally {
+      FlutterNativeSplash.remove();
+    }
+  }
+
+  static Future<void> _closeSafely(IDependenciesStorage? dependencies) async {
+    try {
+      await dependencies?.close();
+    } on Object catch (error, stackTrace) {
+      mainTalker.handle(error, stackTrace, 'Не удалось закрыть зависимости');
+    }
+  }
 }

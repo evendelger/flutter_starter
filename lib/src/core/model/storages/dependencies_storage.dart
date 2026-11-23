@@ -17,7 +17,7 @@ abstract class IDependenciesStorage {
   ClientApi get client;
   FlutterSecureStorage get secureStorage;
 
-  void close();
+  Future<void> close();
 }
 
 final class DependenciesStorage implements IDependenciesStorage {
