@@ -60,7 +60,7 @@ jobs:
 
       - name: Upload coverage
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: coverage/lcov.info
@@ -156,13 +156,13 @@ jobs:
             --build-number=${{ github.run_number }} \
             --obfuscate --split-debug-info=build/symbols
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: app-development-apk
           path: build/app/outputs/flutter-apk/app-development-release.apk
           retention-days: 14
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: android-debug-symbols-development
           path: build/symbols
