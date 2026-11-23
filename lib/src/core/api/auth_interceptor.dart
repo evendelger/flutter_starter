@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
 import 'package:flutter_starter/src/feature/auth/data/repositories/token_storage.dart';
 
@@ -7,6 +5,11 @@ import 'package:flutter_starter/src/feature/auth/data/repositories/token_storage
 /// Интерсептор авторизации: подставляет Bearer-токен в запросы
 /// и разлогинивает пользователя при ответе 401
 /// {@endtemplate}
+// TODO(template): обновление токена. Если бэкенд выдаёт refresh-токен,
+// заменить базовый класс на `QueuedInterceptor` и в `onError` на 401 сначала
+// пробовать обновить токен и повторить запрос, а `onLogout` вызывать, только
+// если обновить не удалось. Очередь нужна, чтобы несколько параллельных 401
+// не запускали несколько обновлений и выходов подряд.
 final class AuthInterceptor extends Interceptor {
   /// {@macro auth_interceptor}
   AuthInterceptor(
@@ -30,7 +33,6 @@ final class AuthInterceptor extends Interceptor {
     RequestInterceptorHandler handler,
   ) async {
     final token = await tokenStorage.token;
-    log('Auth Token: $token');
 
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
@@ -46,10 +48,7 @@ final class AuthInterceptor extends Interceptor {
     if (err.response?.statusCode == 401) {
       await onLogout();
       await tokenStorage.removeToken();
-
-      return handler.next(err);
-    } else {
-      handler.next(err);
     }
+    handler.next(err);
   }
 }

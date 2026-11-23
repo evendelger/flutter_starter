@@ -32,7 +32,7 @@ abstract base class Config {
   /// DB file name
   static const dbName = 'app_database.db';
 
-  /// Таймаут соединения с серверером
+  /// Таймаут запросов к серверу (connect / send / receive)
   static const connectionTimeout = Duration(seconds: 15);
 
   /// Текущая платформа в строковом формате: `ios` `android`

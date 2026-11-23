@@ -90,7 +90,7 @@ New global initialization goes inside this sequence — not into widget `initSta
 ```
 lib/src/
   core/          # Infrastructure shared by all features
-    api/         #   ApiClient (Dio config), AuthInterceptor
+    api/         #   ApiClient (Dio config), AuthInterceptor, apiCall
     bloc/        #   DataBloc / PaginatedDataBloc base classes
     constant/    #   Config, UIConfig, generated assets, l10n
     database/    #   Drift AppDatabase + typed SharedPreferences DAOs
@@ -201,21 +201,29 @@ Repositories return **domain models**, never DTOs. Mapping lives in `data/mapper
 (`user_api_mapper.dart` — DTO → domain, `user_db_mapper.dart` — drift row ↔ domain).
 
 Errors follow one hierarchy: `AppException` (`core/model/exceptions/`) → `ApiException`,
-`NetworkException`, `UnauthorizedException`, plus feature exceptions such as `UserException`.
-Repositories convert Dio failures with the `DioX.throwCustom` extension:
+`NetworkException`, `UnauthorizedException`, `RequestCancelledException`, plus feature exceptions
+such as `UserException`. Every network call goes through `apiCall` (`core/api/api_call.dart`),
+wrapped in a private `_call` that supplies the feature exception (see `UserRepository`):
 
 ```dart
-try {
+@override
+Future<User> getUserData() => _call(UserErrorType.getData, () async {
   final response = await _client.getUser();
-  ...
-} on DioException catch (error) {
-  error.throwCustom(
-    error.stackTrace,
-    unknownError: baseException,
-    errorBuilder: (message) => UserException(UserErrorType.unknown, message),
-  );
-}
+  return response.requireData().toDomain();
+});
+
+Future<T> _call<T>(UserErrorType type, Future<T> Function() body) => apiCall(
+  body,
+  fallback: UserException(type),
+  fromMessage: (message) => UserException(type, message),
+);
 ```
+
+`apiCall` rethrows an `AppException` as is, converts a `DioException` via `DioX.throwCustom`
+(cancel → `RequestCancelledException`, connection/timeout/certificate → `NetworkException`, 401 →
+`UnauthorizedException`, a string `message` in the body → `fromMessage`, otherwise `fallback`), and
+logs anything else (e.g. a mapper `TypeError`) before turning it into `fallback`. `requireData()`
+treats a missing `data` as such an error. Don't write `on DioException` in repositories.
 
 Blocs catch the typed exception and put it into the error state; the UI localizes it via the
 `*_exception_localize_x.dart` extensions and shows it through `context.showMessage(...)`
@@ -233,7 +241,8 @@ Blocs catch the typed exception and put it into the error state; the UI localize
 
 `packages/client_api` is a separate package: Retrofit `ClientApi` + freezed/json DTOs. Endpoints and
 DTOs are added there, then `build_runner` is run **inside that package**. `core/api/ApiClient` only
-configures Dio (timeouts, headers, `TalkerDioLogger`); `AuthInterceptor` handles the token and logout.
+configures Dio (timeouts from `Config.connectionTimeout`, headers, `TalkerDioLogger`) and creates the
+`Dio` instance once; `AuthInterceptor` handles the token and logout (never log the token).
 
 `config/*.json` ship with `example.com` placeholders — each derived project replaces them. Values are
 read only through `Config` (`String.fromEnvironment`), never inline in code.

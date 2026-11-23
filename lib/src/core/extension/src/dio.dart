@@ -7,27 +7,32 @@ extension DioX on DioException {
     DioExceptionType.connectionTimeout,
     DioExceptionType.receiveTimeout,
     DioExceptionType.sendTimeout,
+    DioExceptionType.badCertificate,
   };
 
+  /// Превращает [DioException] в типизированное [AppException].
+  ///
+  /// Порядок проверок: отмена → сеть → 401 → `message` из тела ответа →
+  /// [unknownError]. Статус 401 проверяется до разбора тела: многие серверы
+  /// отдают его без тела или не в JSON.
   Never throwCustom<T extends Exception>(
     StackTrace stackTrace, {
     required T unknownError,
     required T Function(String message) errorBuilder,
   }) {
+    if (type == DioExceptionType.cancel) {
+      return Error.throwWithStackTrace(
+        const RequestCancelledException(),
+        stackTrace,
+      );
+    }
+
     if (_networkErrorTypes.contains(type)) {
       return Error.throwWithStackTrace(
         const NetworkException(),
         stackTrace,
       );
     }
-
-    final data = response?.data;
-    if (data is! Map) {
-      return Error.throwWithStackTrace(unknownError, stackTrace);
-    }
-
-    final map = Map<String, dynamic>.from(data);
-    final message = map['message'] as String?;
 
     if (response?.statusCode == 401) {
       return Error.throwWithStackTrace(
@@ -36,13 +41,14 @@ extension DioX on DioException {
       );
     }
 
-    if (message == null) {
-      return Error.throwWithStackTrace(unknownError, stackTrace);
+    final data = response?.data;
+    // `message` бывает не строкой (например, в ответах валидации) —
+    // тогда это неизвестная ошибка, а не TypeError
+    final message = data is Map ? data['message'] : null;
+    if (message is String && message.isNotEmpty) {
+      return Error.throwWithStackTrace(errorBuilder(message), stackTrace);
     }
 
-    return Error.throwWithStackTrace(
-      errorBuilder(message),
-      stackTrace,
-    );
+    return Error.throwWithStackTrace(unknownError, stackTrace);
   }
 }

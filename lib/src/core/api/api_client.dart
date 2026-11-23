@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_starter/src/core/constant/config.dart';
 import 'package:talker_dio_logger/talker_dio_logger.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
@@ -6,38 +7,39 @@ abstract interface class IApiClient {
   Dio get dio;
 }
 
+/// {@template api_client}
+/// Конфигурация [Dio]: базовый URL, таймауты, заголовки, логирование.
+///
+/// Инстанс [dio] создаётся один раз — интерсепторы, добавленные к нему
+/// (например, `AuthInterceptor`), видны всем, кто его использует.
+/// {@endtemplate}
 final class ApiClient implements IApiClient {
-  const ApiClient({
-    required this._talker,
-    required this._baseUrl,
-  });
-
-  final Talker _talker;
-
-  final String _baseUrl;
-
-  static Duration get _timeoutDurarion => const Duration(seconds: 15);
+  /// {@macro api_client}
+  ApiClient({
+    required Talker talker,
+    required String baseUrl,
+  }) : dio = Dio(
+         BaseOptions(
+           baseUrl: baseUrl,
+           connectTimeout: Config.connectionTimeout,
+           receiveTimeout: Config.connectionTimeout,
+           sendTimeout: Config.connectionTimeout,
+           headers: {
+             'Accept': 'application/json',
+           },
+           contentType: Headers.jsonContentType,
+         ),
+       ) {
+    dio.interceptors.add(
+      TalkerDioLogger(
+        talker: talker,
+        settings: const TalkerDioLoggerSettings(
+          printErrorHeaders: false,
+        ),
+      ),
+    );
+  }
 
   @override
-  Dio get dio => Dio()
-    ..options = BaseOptions(
-      baseUrl: _baseUrl,
-      connectTimeout: _timeoutDurarion,
-      receiveTimeout: _timeoutDurarion,
-      sendTimeout: _timeoutDurarion,
-      headers: {
-        'Accept': 'application/json',
-      },
-      contentType: Headers.jsonContentType,
-    )
-    ..interceptors.addAll(
-      [
-        TalkerDioLogger(
-          talker: _talker,
-          settings: const TalkerDioLoggerSettings(
-            printErrorHeaders: false,
-          ),
-        ),
-      ],
-    );
+  final Dio dio;
 }

@@ -11,9 +11,6 @@ abstract interface class ITokenStorage {
 
   /// Удалить токен
   Future<void> removeToken();
-
-  /// Токен по умолчанию
-  String? get defaultToken;
 }
 
 final class TokenStorage implements ITokenStorage {
@@ -51,11 +48,5 @@ final class TokenStorage implements ITokenStorage {
   Future<void> removeToken() async {
     _cachedToken = null;
     await _secureStorage.removeToken();
-    if (defaultToken != null) {
-      await setToken(defaultToken!);
-    }
   }
-
-  @override
-  String? get defaultToken => null;
 }
