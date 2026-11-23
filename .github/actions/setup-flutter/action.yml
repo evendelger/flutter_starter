@@ -1,0 +1,31 @@
+name: Setup Flutter
+description: >-
+  Flutter версии из .fvmrc, зависимости и кодогенерация (client_api + приложение).
+  Сгенерированный код не хранится в git, поэтому он нужен каждому джобу, который компилирует Dart.
+
+runs:
+  using: composite
+  steps:
+    # .fvmrc — единственный источник версии Flutter (как и для Makefile)
+    - name: Flutter version from .fvmrc
+      id: fvm
+      shell: bash
+      run: echo "version=$(jq -r .flutter .fvmrc)" >> "$GITHUB_OUTPUT"
+
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ steps.fvm.outputs.version }}
+        channel: stable
+        cache: true
+
+    - name: Dependencies
+      shell: bash
+      run: |
+        flutter pub get
+        (cd packages/client_api && dart pub get)
+
+    - name: Codegen
+      shell: bash
+      run: |
+        (cd packages/client_api && dart run build_runner build -d)
+        dart run build_runner build -d

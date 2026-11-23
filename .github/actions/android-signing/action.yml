@@ -1,0 +1,42 @@
+name: Android signing
+description: >-
+  Разворачивает upload keystore и android/key.properties из секретов на время сборки.
+  Формат key.properties тот же, что у `make setup-android`.
+
+inputs:
+  keystore-base64:
+    description: upload keystore в base64 (секрет KEYSTORE_BASE64)
+    required: true
+  store-password:
+    description: пароль keystore (секрет STORE_PASSWORD)
+    required: true
+  key-password:
+    description: пароль ключа (секрет KEY_PASSWORD)
+    required: true
+  key-alias:
+    description: алиас ключа (секрет KEY_ALIAS)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Configure signing
+      shell: bash
+      env:
+        KEYSTORE_BASE64: ${{ inputs.keystore-base64 }}
+        STORE_PASSWORD: ${{ inputs.store-password }}
+        KEY_PASSWORD: ${{ inputs.key-password }}
+        KEY_ALIAS: ${{ inputs.key-alias }}
+      run: |
+        # Без секретов gradle молча соберёт неподписанный релиз — падаем явно
+        if [ -z "$KEYSTORE_BASE64" ]; then
+          echo "::error::Не заданы секреты подписи (KEYSTORE_BASE64 и др.), см. docs/NEW_PROJECT.md"
+          exit 1
+        fi
+        echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+        cat > android/key.properties <<EOF
+        storePassword=$STORE_PASSWORD
+        keyPassword=$KEY_PASSWORD
+        keyAlias=$KEY_ALIAS
+        storeFile=upload-keystore.jks
+        EOF

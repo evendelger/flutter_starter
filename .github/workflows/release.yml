@@ -1,0 +1,77 @@
+# Релиз по тегу v* на main: подписанные APK + AAB флейвора production → GitHub Release.
+#
+# Выключен, пока в репозитории нет переменной DELIVERY_ENABLED=true: теги версий самого шаблона
+# ничего не собирают. Как включить — docs/NEW_PROJECT.md.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write # для gh release create
+
+jobs:
+  release:
+    name: Release
+    if: vars.DELIVERY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # нужна история main для проверки ниже
+
+      - name: Ensure tag points to main
+        run: |
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main \
+            || { echo "::error::Тег $GITHUB_REF_NAME не на ветке main"; exit 1; }
+
+      - name: Version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - uses: ./.github/actions/setup-flutter
+
+      - uses: ./.github/actions/android-signing
+        with:
+          keystore-base64: ${{ secrets.KEYSTORE_BASE64 }}
+          store-password: ${{ secrets.STORE_PASSWORD }}
+          key-password: ${{ secrets.KEY_PASSWORD }}
+          key-alias: ${{ secrets.KEY_ALIAS }}
+
+      # build-name из тега перекрывает version в pubspec.yaml; build-number — номер прогона
+      # этого workflow (у dev-сборок из ci.yml свой счётчик, но у них другой applicationId).
+      - name: Build APK and AAB
+        env:
+          BUILD_ARGS: >-
+            --release
+            --flavor production
+            --dart-define-from-file=config/production.json
+            --build-name=${{ steps.version.outputs.version }}
+            --build-number=${{ github.run_number }}
+            --obfuscate --split-debug-info=build/symbols
+        run: |
+          flutter build apk $BUILD_ARGS
+          flutter build appbundle $BUILD_ARGS
+
+      - name: Package debug symbols
+        run: cd build && zip -r symbols.zip symbols
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            build/app/outputs/flutter-apk/app-production-release.apk \
+            build/app/outputs/bundle/productionRelease/app-production-release.aab \
+            build/symbols.zip

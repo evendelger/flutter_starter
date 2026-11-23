@@ -63,9 +63,14 @@ bloc-lint:
 .PHONY: lint
 lint: format-check analyze bloc-lint
 
+# Случайный порядок ловит тесты, зависящие друг от друга; seed печатается в выводе,
+# повторить порядок: flutter test --test-randomize-ordering-seed <seed>.
+# Доп. флаги: make test TEST_ARGS=--coverage
+TEST_ARGS ?=
+
 .PHONY: test
 test:
-	flutter test
+	flutter test --test-randomize-ordering-seed random $(TEST_ARGS)
 
 .PHONY: check
 check: lint test

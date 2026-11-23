@@ -53,6 +53,14 @@ Verification bar for any change: `make check` green, and for changes touching pl
 assets — an actual build
 (`flutter build apk --debug --flavor development --dart-define-from-file=config/development.json`).
 
+**CI & branches.** `.github/workflows/ci.yml` runs `make check` on a clean codegen plus a debug Android
+build on every push/PR, and an unsigned iOS build on push to `main` or manual dispatch; shared setup
+lives in `.github/actions/` (Flutter version read from `.fvmrc`). The template itself is developed
+directly on `main`, so `make check` locally is the gate — CI is the post-push safety net. Delivery
+(signed dev APK from `develop`, the `Release PR source` guard, `release.yml` on `v*` tags) ships
+dormant behind the `DELIVERY_ENABLED` repository variable; don't enable it here — the activation
+steps and the `develop → main` model are in `docs/NEW_PROJECT.md`.
+
 **Known analyzer noise:** Flutter 3.47+ deprecated `package:flutter/material.dart` / `cupertino.dart`
 in favour of the `material_ui` / `cupertino_ui` packages. Those `deprecated_member_use` infos (~64) are
 filtered out by `tool/analyze.dart` — and only those; any other issue, info included, fails the check.

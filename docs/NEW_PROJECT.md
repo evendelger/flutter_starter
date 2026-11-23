@@ -34,6 +34,7 @@ Code будет сопротивляться ровно той работе, р�
 | Раздел Rename tooling | ближе к концу Architecture |
 | Оговорки «config ship with `example.com` placeholders», «assets ship empty», «Keep this feature dormant in the template», «in a derived project» | разделы API client, Theme & assets, Push notifications, Authentication |
 | Конвенция `TODO(template):` | раздел Conventions |
+| Абзац «CI & branches»: работа в шаблоне напрямую в `main`, доставка выключена — заменить моделью веток проекта (раздел 7 ниже) | раздел Commands |
 
 ### Оставить без изменений
 
@@ -101,7 +102,79 @@ Code будет сопротивляться ровно той работе, р�
 3. Реализовать вход в `AuthRepository` (помечено `TODO(template)`) и форму в
    `LoginScreen`
 
-## 7. Остальное
+## 7. CI, ветки и релизы
+
+CI рассчитан на GitHub Actions; для другого CI перенести те же шаги.
+
+Без настройки работают проверки (`ci.yml`, job `check` = `make check` на
+чистой кодогенерации), debug-сборка Android и iOS без подписи (только на
+push в `main` и ручной запуск). Секреты для них не нужны.
+
+Доставка в шаблоне выключена: подписанный dev-APK из `develop`, проверка
+источника PR в `main` и `release.yml` (релиз по тегу) пропускаются, пока нет
+переменной репозитория `DELIVERY_ENABLED`.
+
+### Модель веток
+
+```
+feature/*, fix/*, chore/*, ci/*  ──PR──▶  develop  ──PR──▶  main  ──tag v1.2.3──▶  GitHub Release
+```
+
+- Разработка идёт в `develop`; push в `develop` собирает подписанный dev-APK
+  (артефакт прогона, `applicationId` с суффиксом `.dev`)
+- В `main` вливаются только `develop`, `release/*` и `hotfix/*` — это
+  проверяет job `Release PR source`. После `hotfix/*` смёржить `main` обратно
+  в `develop`
+- Релизный PR `develop → main` мёржится **merge-коммитом**, не squash: иначе
+  истории веток разойдутся и следующий релизный PR покажет уже влитые коммиты
+  как новые
+- Релиз — тег `v*` на коммите из `main` (тег вне `main` workflow отклоняет):
+  `git switch main && git pull && git tag v1.0.0 && git push origin v1.0.0`.
+  `--build-name` берётся из тега — держать `version` в `pubspec.yaml` в
+  синхроне; release notes собираются из заголовков PR, поэтому заголовки в
+  стиле conventional commits
+
+### Включение
+
+1. Ветка `develop` от `main`; **Settings → General → Default branch →
+   `develop`** (туда же пойдут PR Dependabot)
+2. `pubspec.lock` — в git: убрать строку из `.gitignore`, а из `make clean` —
+   `rm pubspec.lock`. В шаблоне lock не хранится, у приложения релизные
+   сборки должны быть воспроизводимы
+3. Upload keystore (`make setup-android`) и четыре секрета
+   (**Settings → Secrets and variables → Actions**):
+
+   ```sh
+   base64 < android/app/keystore.jks | gh secret set KEYSTORE_BASE64
+   gh secret set STORE_PASSWORD
+   gh secret set KEY_PASSWORD
+   gh secret set KEY_ALIAS
+   ```
+
+   Keystore хранить вне репозитория (менеджер паролей): потеря upload-ключа —
+   это процедура сброса через Play Console
+4. `gh variable set DELIVERY_ENABLED --body true`
+5. Защита веток (**Settings → Rules → Rulesets**) — после первого прогона CI,
+   раньше имена проверок не появятся в списке:
+
+   | | `develop` | `main` |
+   |---|---|---|
+   | Require a pull request | да | да |
+   | Required status checks | `Format, analyze, test`, `Build Android (debug, development)` | то же + `Release PR source` |
+   | Allowed merge methods | squash | merge commit |
+   | Block force pushes, restrict deletions | да | да |
+
+6. Когда в `config/*.json` появятся реальные значения — перенести их в
+   секреты и записывать файл отдельным шагом перед сборкой, в git оставить
+   пример со всеми ключами
+
+Не сделано и остаётся проекту: раздача сборок тестерам (Firebase App
+Distribution), загрузка в Google Play / TestFlight, подписанная iOS-сборка
+(нужны сертификаты и профили Apple Developer), Shorebird в CI
+(`SHOREBIRD_TOKEN`). В приватном репозитории macOS-минуты списываются с
+коэффициентом 10 — iOS-джоб там стоит оставить ручным.
+
+## 8. Остальное
 
 - `README.md` — в нём та же шаблонная рамка, переписать под проект
 - `android/key.properties` и keystore: `make setup-android`
@@ -109,6 +182,3 @@ Code будет сопротивляться ровно той работе, р�
   не поставляются, их нужно выложить на домен проекта
 - Версия Flutter зафиксирована только в `.fvmrc` — `make shorebird-*` и CI
   читают её оттуда
-- CI (`.github/workflows/ci.yml`) рассчитан на GitHub Actions; для другого
-  CI перенести те же шаги. Секреты в CI не нужны: сборка идёт с
-  `config/development.json`

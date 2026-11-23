@@ -140,8 +140,10 @@ make format          # отформатировать все Dart-файлы п�
 
 `make bloc-lint` нужен CLI из `bloc_tools`:
 `dart pub global activate bloc_tools` (и `~/.pub-cache/bin` в `PATH`).
-CI — `.github/workflows/ci.yml`: те же проверки на чистой кодогенерации
-плюс debug-сборка Android.
+CI — `.github/workflows/ci.yml`: те же проверки на чистой кодогенерации,
+debug-сборка Android и iOS без подписи (push в `main`). Релизы по тегу и
+подписанные сборки в шаблоне выключены — включение описано в
+[`docs/NEW_PROJECT.md`](docs/NEW_PROJECT.md).
 
 `test/helpers/pump_app.dart` — хелпер рендеринга виджета с локализациями.
 

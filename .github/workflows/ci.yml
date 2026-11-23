@@ -1,19 +1,30 @@
-# Проверки шаблона. Локальный эквивалент job `check` — `make check` (после кодогенерации).
+# Проверки. Локальный эквивалент job `check` — `make check` (после кодогенерации).
 #
 # Сгенерированный код (*.g.dart, *.freezed.dart, *.gr.dart, flutter_gen) не хранится в git,
 # поэтому CI всегда генерирует его с нуля: устаревший локальный .gr.dart, который не виден
 # `analyze`, здесь невозможен — расхождение аннотаций и кода роняет analyze/test/build.
 # Исключение — l10n (app_localizations*.dart под git): проверяется, что он перегенерирован.
+#
+# Доставка (подписанный dev-APK из develop, проверка источника PR в main, release.yml) выключена,
+# пока в репозитории нет переменной DELIVERY_ENABLED=true. Как включить — docs/NEW_PROJECT.md.
 name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
+    # Только на push: PR проверяется всегда, иначе обязательные проверки в защите веток
+    # зависнут в «ожидании» на PR, где меняется одна документация.
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
   pull_request:
+  workflow_dispatch:
 
+# Новый прогон отменяет предыдущий на той же ветке; на develop прогоны доводятся до конца —
+# иначе быстрый второй мёрж отменит dev-сборку первого.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/develop' }}
 
 jobs:
   check:
@@ -21,27 +32,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - name: Flutter version from .fvmrc
-        id: fvm
-        run: echo "version=$(jq -r .flutter .fvmrc)" >> "$GITHUB_OUTPUT"
-
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ steps.fvm.outputs.version }}
-          channel: stable
-          cache: true
+      - uses: ./.github/actions/setup-flutter
 
       - name: Install bloc CLI
         run: |
           dart pub global activate bloc_tools
           echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
-
-      - name: Dependencies
-        run: |
-          flutter pub get
-          (cd packages/client_api && dart pub get)
 
       - name: Format
         run: make format-check
@@ -51,11 +49,6 @@ jobs:
           flutter gen-l10n
           git diff --exit-code -- lib/src/core/constant/l10n
 
-      - name: Codegen
-        run: |
-          (cd packages/client_api && dart run build_runner build -d)
-          dart run build_runner build -d
-
       - name: Analyze
         run: make analyze
 
@@ -63,7 +56,16 @@ jobs:
         run: make bloc-lint
 
       - name: Test
-        run: make test
+        run: make test TEST_ARGS=--coverage
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: coverage
+          path: coverage/lcov.info
+          if-no-files-found: ignore
+          retention-days: 7
 
   build-android:
     name: Build Android (debug, development)
@@ -71,29 +73,97 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "21"
           cache: gradle
 
-      - name: Flutter version from .fvmrc
-        id: fvm
-        run: echo "version=$(jq -r .flutter .fvmrc)" >> "$GITHUB_OUTPUT"
-
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ steps.fvm.outputs.version }}
-          channel: stable
-          cache: true
-
-      - name: Dependencies and codegen
-        run: |
-          flutter pub get
-          (cd packages/client_api && dart pub get && dart run build_runner build -d)
-          dart run build_runner build -d
+      - uses: ./.github/actions/setup-flutter
 
       - name: Build APK
         run: flutter build apk --debug --flavor development --dart-define-from-file=config/development.json
+
+  # macOS-раннер: только push в main или ручной запуск (Actions → CI → Run workflow).
+  build-ios:
+    name: Build iOS (no codesign)
+    needs: check
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+      || github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/setup-flutter
+
+      - name: Build
+        run: flutter build ios --release --no-codesign --flavor production --dart-define-from-file=config/production.json
+
+  # ==== Доставка: выключена, пока нет vars.DELIVERY_ENABLED == 'true' ====
+
+  release-source:
+    name: Release PR source
+    if: >-
+      vars.DELIVERY_ENABLED == 'true'
+      && github.event_name == 'pull_request' && github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Only develop, release/* or hotfix/* may target main
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          case "$HEAD_REF" in
+            develop|release/*|hotfix/*) echo "OK: $HEAD_REF" ;;
+            *) echo "::error::В main можно вливать только develop, release/* или hotfix/* (получено: $HEAD_REF)"; exit 1 ;;
+          esac
+
+  build-android-dev:
+    name: Build Android (signed, development)
+    needs: check
+    if: >-
+      vars.DELIVERY_ENABLED == 'true'
+      && github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - uses: ./.github/actions/setup-flutter
+
+      - uses: ./.github/actions/android-signing
+        with:
+          keystore-base64: ${{ secrets.KEYSTORE_BASE64 }}
+          store-password: ${{ secrets.STORE_PASSWORD }}
+          key-password: ${{ secrets.KEY_PASSWORD }}
+          key-alias: ${{ secrets.KEY_ALIAS }}
+
+      - name: Build APK
+        run: |
+          flutter build apk --release \
+            --flavor development \
+            --dart-define-from-file=config/development.json \
+            --build-number=${{ github.run_number }} \
+            --obfuscate --split-debug-info=build/symbols
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: app-development-apk
+          path: build/app/outputs/flutter-apk/app-development-release.apk
+          retention-days: 14
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: android-debug-symbols-development
+          path: build/symbols
+          retention-days: 30

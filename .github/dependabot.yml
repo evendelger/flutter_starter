@@ -1,0 +1,17 @@
+version: 2
+
+# Только версии actions — раз в месяц, одним PR. Pub-зависимости обновляются вручную:
+#   flutter pub outdated
+#   (cd packages/client_api && dart pub outdated)
+# PR идут в ветку по умолчанию; в проекте с develop сделайте её веткой по умолчанию.
+updates:
+  - package-ecosystem: "github-actions"
+    # Корень — workflows, вторая маска — composite actions из .github/actions/
+    directories: ["/", "/.github/actions/*"]
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "ci(deps)"
+    groups:
+      actions:
+        patterns: ["*"]
